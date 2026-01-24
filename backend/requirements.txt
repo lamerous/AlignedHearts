@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-jose[cryptography]   # JWT Tokens
+passlib[bcrypt]	# Serure Password Hashing
+python-multipart
+authlib
+httpx
+python-dotenv
+itsdangerous
+websockets
