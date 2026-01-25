@@ -48,6 +48,8 @@ async def get_documentation(username: str = Depends(get_current_username)):
 
 class User(BaseModel):
     id: str
+    login: str
+    username: str
     email: str
 
 class Token(BaseModel):
@@ -72,12 +74,12 @@ class AIResultResponse(BaseModel):
 # --- Эндпоинты: Auth ---
 
 @app.post("/api/auth/register", tags=["Auth"], response_model=Token)
-async def register():
+async def register(login: str, email: str, password: str):
     """Регистрация нового пользователя"""
     pass
 
 @app.post("/api/auth/login", tags=["Auth"], response_model=Token)
-async def login():
+async def login(login: str, password: str):
     """Вход в систему"""
     pass
 
@@ -85,6 +87,18 @@ async def login():
 async def get_me():
     """Получить данные текущего пользователя"""
     pass
+
+@app.get("/api/google/login", tags=["Auth"])
+async def google_login():
+    return {"url": "https://accounts.google.com/o/oauth2/auth?..."}
+
+@app.get("/api/auth/google/callback", tags=["Auth"], response_model=Token)
+async def google_callback(code: str):
+    return {
+        "access_token": "google_session_token",
+        "refresh_token": "google_refresh_token",
+        "token_type": "bearer"
+    }
 
 # --- Эндпоинты: Rooms ---
 
