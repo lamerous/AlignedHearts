@@ -1,0 +1,9 @@
+.env
+
+obsidian/
+
+__pycache__/
+venv/
+
+test*
+tutorial.py
