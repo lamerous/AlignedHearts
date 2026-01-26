@@ -2,8 +2,17 @@ fastapi
 uvicorn
 python-multipart
 pydantic
+pydantic[email]
+
+sqlalchemy
+psycopg2-binary
 
 python-jose
 passlib[bcrypt]
+
+authlib
+itsdangerous
+
+httpx
 
 dotenv
