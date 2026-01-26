@@ -32,9 +32,9 @@ def get_cancel_menu():
 
 # --- ТЕСТОВЫЕ ДАННЫЕ ДЛЯ ПРОВЕРКИ ---
 _test_room_code = "7777"
-_test_partner_id = 123456789  # Фейковый ID партнера
+_test_partner_id = 123456789  
 
-# Создаем комнату, где уже есть один человек
+
 rooms[_test_room_code] = {
     "users": [_test_partner_id], 
     "messages": {
@@ -42,7 +42,7 @@ rooms[_test_room_code] = {
     }
 }
 
-# Помечаем в системе, что партнер уже "отправил" сообщение
+
 user_data[_test_partner_id] = {"room": _test_room_code, "state": "sent"}
 # ----------------------------------
 
@@ -137,18 +137,18 @@ def handle_all_inputs(message):
             user_data.pop(uid, None) 
             return
 
-        # 4. ПОДКЛЮЧЕНИЕ С ЗАЩИТОЙ
+      
         rooms[_code]["users"].append(uid)
         for _user_id in rooms[_code]["users"]:
             user_data[_user_id] = {"room": _code, "state": "writing"}
             
-            # Тот самый блок страховки
+            
             try:
                 bot.send_message(_user_id, 
                     "🤝 Соединение установлено! Опишите свои чувства и ситуацию:", 
                     reply_markup=get_cancel_menu())
             except Exception as _e:
-                # Если ID фейковый (как в тесте), бот просто выведет ошибку в консоль и пойдет дальше
+                
                 print(f"Ошибка отправки для {_user_id}: {_e}")
 
     elif state == "writing":
