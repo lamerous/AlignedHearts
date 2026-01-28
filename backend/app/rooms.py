@@ -64,7 +64,7 @@ async def delete_created_room(
     current_user=Depends(get_current_user), db: Session = Depends(get_db)
 ):
     try:
-        rooms = db.query(Room).filter(
+        db.query(Room).filter(
             Room.owner_id == current_user.id,
             Room.status == "active"
         ).delete(synchronize_session=False)

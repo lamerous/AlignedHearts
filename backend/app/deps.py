@@ -10,6 +10,17 @@ from app.models import User
 from app.auth_utils import SECRET_KEY, ALGORITHM
 from app.database import SessionLocal
 
+from app.s3client import S3Client
+
+load_dotenv()
+
+s3client = S3Client(
+    access_key=os.getenv("S3_ACCESS_KEY"),
+    secret_key=os.getenv("S3_SECRET_KEY"),
+    endpoint_url=os.getenv("S3_ENDPOINT_URL"),
+    bucket_name=os.getenv("S3_BUCKET_NAME")
+)
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 def get_db():
@@ -52,3 +63,6 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+def get_s3_client():
+    return s3client

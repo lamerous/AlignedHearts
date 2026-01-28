@@ -18,7 +18,7 @@ class S3Client:
         self.config = {
             "aws_access_key_id": access_key,
             "aws_secret_access_key": secret_key,
-            "endpoint_url": endpoint_url
+            "endpoint_url": endpoint_url,
         }
         self.bucket_name = bucket_name
         self.session = get_session()
@@ -40,3 +40,13 @@ class S3Client:
                     Key=object_name,
                     Body=file,
                 )
+    
+    async def upload_fileobj(self, file_data: bytes, key: str, content_type: str):
+        """Загрузка байтов напрямую в S3"""
+        async with self.get_client() as client:
+            await client.put_object(
+                Bucket=self.bucket_name,
+                Key=key,
+                Body=file_data,
+                ContentType=content_type
+            )

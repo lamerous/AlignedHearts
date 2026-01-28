@@ -6,6 +6,7 @@ from app import models, schemas, auth_utils, deps
 from dotenv import load_dotenv
 import os
 import httpx
+from random import randint
 
 load_dotenv()
 
@@ -32,7 +33,8 @@ async def register(user_data: schemas.UserCreate, response: Response, db: Sessio
         username=user_data.username,
         email=user_data.email,
         sex=user_data.sex,
-        hashed_password=auth_utils.hash_password(user_data.password)
+        hashed_password=auth_utils.hash_password(user_data.password),
+        avatar=f"https://storage-667.s3hoster.by/alignedhearts/avatar{randint(1, 5)}.jpg"
     )
     db.add(new_user)
     db.commit()
@@ -51,7 +53,6 @@ async def login(user_data: schemas.UserLogin, response: Response, db: Session = 
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = auth_utils.create_access_token(data={"sub": user.username})
-
     auth_utils.set_auth_cookie(response, token)
 
     return {"access_token": token, "refresh_token": "stub", "token_type": "bearer"}
