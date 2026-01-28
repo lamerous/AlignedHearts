@@ -18,3 +18,5 @@ httpx
 aiobotocore
 
 dotenv
+
+puremagic

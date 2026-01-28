@@ -13,14 +13,17 @@ from app.room_utils import generate_room_code
 
 from typing import List
 
-MAX_FILE_SIZE = 5 * 1024 * 1024
+import puremagic
+
 
 router = APIRouter(prefix="/api/profile", tags=["Profile"])
+
 
 @router.get("/me", response_model=UserRead)
 async def get_me(current_user: User = Depends(get_current_user)):
     """Получить данные текущего пользователя (требует JWT)"""
     return current_user
+
 
 @router.get("/history", response_model=List[RoomHistoryItem])
 async def user_history(
@@ -35,6 +38,7 @@ async def user_history(
     ).order_by(Room.created_at.desc()).all()
 
     return rooms
+
 
 @router.patch("/change_name")
 async def change_username(
@@ -56,6 +60,7 @@ async def change_username(
 
     return {"message": "Имя успешно обновлено"}
 
+
 @router.patch("/change_sex")
 async def change_sex(
     new_sex: SexEnum,
@@ -71,6 +76,7 @@ async def change_sex(
     db.refresh(current_user)
 
     return {"message": "Пол успешно обновлен"}
+
 
 @router.post("/change_password")
 async def change_password(
@@ -92,6 +98,7 @@ async def change_password(
 
     return {"message": "Пароль успешно обновлен"}
 
+
 @router.patch("/change_avatar")
 async def change_avatar(
     file: UploadFile = File(...),
@@ -99,21 +106,43 @@ async def change_avatar(
     db: Session = Depends(get_db),
     s3: S3Client = Depends(get_s3_client)
 ):
-    if file.size > MAX_FILE_SIZE:
+    # Check filesize (5 MB)
+    if file.size > 5 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="Файл слишком большой. Максимальный размер 5 МБ"
         )
 
-    allowed_types = ["image/jpeg", "image/png", "image/webp"]
-    if file.content_type not in allowed_types:
+    header = await file.read(1024)
+    await file.seek(0)
+
+    # Check filetype
+    try:
+        prediction = puremagic.from_string(header, mime=True)
+        
+        allowed_mimes = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp"
+        }
+
+        if prediction not in allowed_mimes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Недопустимый тип файла: {prediction}. Разрешены только JPG, PNG, WebP"
+            )
+            
+        extension = allowed_mimes[prediction]
+        
+    except puremagic.PureError as err:
+        print(err)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Недопустимый формат файла. Используйте JPEG, PNG или WebP"
+            detail="Недопустимый тип файла"
         )
 
+    # 4. Prepare data for S3
     file_data = await file.read()
-    extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     object_name = f"avatars/user_{current_user.id}.{extension}"
 
     try:
@@ -125,7 +154,8 @@ async def change_avatar(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка загрузки в S3: {str(e)}")
 
-    avatar_url = f"{s3.config['endpoint_url']}/{s3.bucket_name}/{object_name}"
+    # Change avatar in DB
+    avatar_url = f"{s3.config['endpoint_url']}{s3.bucket_name}/{object_name}"
     current_user.avatar = avatar_url
     
     db.add(current_user)
