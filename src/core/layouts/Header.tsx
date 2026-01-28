@@ -13,7 +13,7 @@ export const Header = () => {
           to="/"
           className="flex items-center gap-3 transition-opacity duration-300 hover:opacity-70"
         >
-          <Logo className="h-13 w-13" />
+          <Logo className="h-13 w-13 text-[#F61064]" />
           <span className="font-days leading-10px text-[32px] text-[#F61064]">
             Aligned Hearts
           </span>
