@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from app.auth import router as auth_router
 from app.rooms import router as rooms_router
+from app.profile import router as profile_router
 from app.models import Base
 from app.database import engine
 
@@ -26,6 +27,9 @@ app = FastAPI(
 )
 
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET"))
+app.include_router(auth_router)
+app.include_router(rooms_router)
+app.include_router(profile_router)
 
 security = HTTPBasic()
 SWAGGER_USER = os.getenv("SWAGGER_USER").encode("utf-8")
@@ -42,6 +46,10 @@ def get_swagger_auth(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
+@app.get("/")
+async def root():
+    return {"message": "Aligned Hearts API is running"}
+
 @app.get("/api/openapi.json", include_in_schema=False)
 async def get_open_api_endpoint(username: str = Depends(get_swagger_auth)):
     return get_openapi(title="Aligned Hearts API", version="0.1.0", routes=app.routes)
@@ -49,10 +57,3 @@ async def get_open_api_endpoint(username: str = Depends(get_swagger_auth)):
 @app.get("/api/docs", include_in_schema=False)
 async def get_documentation(username: str = Depends(get_swagger_auth)):
     return get_swagger_ui_html(openapi_url="/api/openapi.json", title="Docs")
-
-app.include_router(auth_router)
-app.include_router(rooms_router)
-
-@app.get("/")
-async def root():
-    return {"message": "Aligned Hearts API is running"}

@@ -95,8 +95,3 @@ async def auth_callback(request: Request, response: Response, db: Session = Depe
 async def logout(request: Request):
     request.session.pop('user', None)
     return {"message": "Вышли из аккаунта"}
-
-@router.get("/me", response_model=schemas.UserRead)
-async def get_me(current_user: models.User = Depends(deps.get_current_user)):
-    """Получить данные текущего пользователя (требует JWT)"""
-    return current_user
