@@ -1,10 +1,39 @@
-import { Link } from '@tanstack/react-router';
-import { UserCircle } from 'lucide-react';
+import { Link, useLocation, useNavigate } from '@tanstack/react-router';
+import { LogOut, User, UserCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { apiFetch } from '@/core/api/apiFetch';
 import { Button } from '@/core/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/core/ui/dropdown-menu';
 import { Logo } from '@/core/ui/logo';
 
 export const Header = () => {
-  const isAuthenticated = !!localStorage.getItem('auth_token');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    !!localStorage.getItem('auth_token'),
+  );
+
+  useEffect(() => {
+    setIsAuthenticated(!!localStorage.getItem('auth_token'));
+  }, [location.pathname]);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await apiFetch('/auth/logout', { method: 'GET' });
+    } catch (error) {
+      console.error('Ошибка при выходе:', error);
+    } finally {
+      localStorage.removeItem('auth_token');
+      setIsAuthenticated(false);
+      navigate({ to: '/' });
+    }
+  }, [navigate, setIsAuthenticated]);
 
   return (
     <header className="sticky top-0 z-50 h-20 w-full bg-[#FFF2F3] shadow-[0_6px_4px_rgba(0,0,0,0.12)]">
@@ -24,33 +53,53 @@ export const Header = () => {
             <Link
               to="/"
               hash="info"
-              className="text-base font-medium text-[#4A4A4A] transition-colors duration-300 hover:text-[#F61064]"
+              className="text-base font-medium text-[#4A4A4A] transition-colors hover:text-[#F61064]"
             >
               Инфо
             </Link>
             <Link
               to="/"
               hash="features"
-              className="text-base font-medium text-[#4A4A4A] transition-colors duration-300 hover:text-[#F61064]"
+              className="text-base font-medium text-[#4A4A4A] transition-colors hover:text-[#F61064]"
             >
               Функции
             </Link>
             <Link
               to="/"
               hash="privacy"
-              className="text-base font-medium text-[#4A4A4A] transition-colors duration-300 hover:text-[#F61064]"
+              className="text-base font-medium text-[#4A4A4A] transition-colors hover:text-[#F61064]"
             >
               Приватность
             </Link>
           </nav>
 
           {isAuthenticated ? (
-            <Link
-              to="/profile"
-              className="group flex items-center justify-center transition-transform hover:scale-110"
-            >
-              <UserCircle className="h-10 w-10 text-[#F61064] transition-colors" />
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="outline-none">
+                <div className="group flex cursor-pointer items-center justify-center transition-transform hover:scale-110">
+                  <UserCircle className="h-10 w-10 text-[#F61064]" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-48 rounded-xl border-none bg-white p-2 shadow-xl"
+              >
+                <DropdownMenuItem
+                  onClick={() => navigate({ to: '/profile' })}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3 transition-colors duration-300 hover:bg-[#FFF2F3]"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Профиль</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Выйти</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button
               variant="outline"
