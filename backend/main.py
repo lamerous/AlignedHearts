@@ -25,11 +25,11 @@ app = FastAPI(
     openapi_url=None
 )
 
-app.add_middleware(SessionMiddleware, secret_key="secret")
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET"))
 
 security = HTTPBasic()
-SWAGGER_USER = os.getenv("SWAGGER_USER", "admin").encode("utf-8")
-SWAGGER_PASS = os.getenv("SWAGGER_PASS", "password").encode("utf-8")
+SWAGGER_USER = os.getenv("SWAGGER_USER").encode("utf-8")
+SWAGGER_PASS = os.getenv("SWAGGER_PASS").encode("utf-8")
 
 def get_swagger_auth(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username.encode("utf-8"), SWAGGER_USER)
@@ -42,13 +42,13 @@ def get_swagger_auth(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
-@app.get("/openapi.json", include_in_schema=False)
+@app.get("/api/openapi.json", include_in_schema=False)
 async def get_open_api_endpoint(username: str = Depends(get_swagger_auth)):
     return get_openapi(title="Aligned Hearts API", version="0.1.0", routes=app.routes)
 
-@app.get("/docs", include_in_schema=False)
+@app.get("/api/docs", include_in_schema=False)
 async def get_documentation(username: str = Depends(get_swagger_auth)):
-    return get_swagger_ui_html(openapi_url="/openapi.json", title="Docs")
+    return get_swagger_ui_html(openapi_url="/api/openapi.json", title="Docs")
 
 app.include_router(auth_router)
 app.include_router(rooms_router)

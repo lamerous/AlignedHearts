@@ -15,4 +15,6 @@ itsdangerous
 
 httpx
 
+aiobotocore
+
 dotenv

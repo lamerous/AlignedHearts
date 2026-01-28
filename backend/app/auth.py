@@ -31,6 +31,7 @@ async def register(user_data: schemas.UserCreate, response: Response, db: Sessio
     new_user = models.User(
         username=user_data.username,
         email=user_data.email,
+        sex=user_data.sex,
         hashed_password=auth_utils.hash_password(user_data.password)
     )
     db.add(new_user)
@@ -58,6 +59,8 @@ async def login(user_data: schemas.UserLogin, response: Response, db: Session = 
 @router.get("/google/login")
 async def login(request: Request):
     redirect_uri = request.url_for("auth_callback")
+    if not request.url.is_secure and "localhost" not in str(redirect_uri):
+        redirect_uri = str(redirect_uri).replace("http://", "https://")
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @router.get("/google/callback")
@@ -81,9 +84,12 @@ async def auth_callback(request: Request, response: Response, db: Session = Depe
         db.refresh(user)
 
     internal_token = auth_utils.create_access_token(data={"sub": user.username})
+
+    response = RedirectResponse(url="/", status_code = 302)
+
     auth_utils.set_auth_cookie(response, internal_token)
 
-    return {"message": "Success", "access_token": internal_token}
+    return response
 
 @router.get('/logout')
 async def logout(request: Request):
@@ -93,5 +99,4 @@ async def logout(request: Request):
 @router.get("/me", response_model=schemas.UserRead)
 async def get_me(current_user: models.User = Depends(deps.get_current_user)):
     """Получить данные текущего пользователя (требует JWT)"""
-    print(current_user)
     return current_user

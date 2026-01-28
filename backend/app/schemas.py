@@ -21,6 +21,7 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     id: int
+    avatar: str
     class Config:
         from_attributes = True
 
@@ -30,8 +31,11 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 class RoomCreateResponse(BaseModel):
-    room_id: str
-    invite_link: str
+    code: str
+    ws_url: str
+
+class RoomConnectResponse(BaseModel):
+    ws_url: str
 
 class ConflictAnalysis(BaseModel):
     emotion: str = Field(..., description="Результат ruBERT-tiny2: Агрессия, Тревога и т.д.")
