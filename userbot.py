@@ -12,7 +12,9 @@ from database_ops import (
     create_room_in_db, 
     join_room_in_db, 
     save_message_to_db, 
-    leave_room_in_db 
+    leave_room_in_db ,
+    clear_user_rooms_in_db,
+    get_ai_advice_from_db
 )
 
 
@@ -36,7 +38,7 @@ except Exception as _e:
 
 def get_main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("🆕 Создать комнату"), types.KeyboardButton("🔑 Войти в комнату"))
+    markup.add(types.KeyboardButton("🆕 Создать комнату"), types.KeyboardButton("🔑 Войти в комнату"),types.KeyboardButton("🔄 Сбросить состояние"))
     return markup
 
 
@@ -71,25 +73,43 @@ def cancel_action(message):
         reply_markup=get_main_menu()
     )
 
+@bot.message_handler(func=lambda message: message.text == "🔄 Сбросить состояние")
+def reset_status(message):
+    uid = message.chat.id
+    success = asyncio.run(clear_user_rooms_in_db(uid))
+    if success:
+        bot.send_message(uid, "🧹 Все ваши активные комнаты закрыты. Теперь вы можете создать новую!")
+    else:
+        bot.send_message(uid, "❌ Ошибка при очистке данных.")
 
 @bot.message_handler(func=lambda message: message.text == "🆕 Создать комнату")
 def create_room(message):
     uid = message.chat.id
-    room_code = asyncio.run(create_room_in_db(uid))
+    room_code, is_new = asyncio.run(create_room_in_db(uid))
 
     if room_code:
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        markup.add(types.KeyboardButton("Да"), types.KeyboardButton("Нет"))
+        if is_new:
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+            markup.add(types.KeyboardButton("Да"), types.KeyboardButton("Нет"))
 
-        bot.send_message(
-            uid, 
-            f"✅ Комната создана!\nКод: `{room_code}`\n\nХотите написать о своих переживаниях?", 
-            parse_mode='Markdown',
-            reply_markup=markup
-        )
-        bot.register_next_step_handler(message, handle_ask_feelings)
+            bot.send_message(
+                uid, 
+                f"✅ Комната создана!\nКод: `{room_code}`\n\nХотите написать о своих переживаниях?", 
+                parse_mode='Markdown',
+                reply_markup=markup
+            )
+            bot.register_next_step_handler(message, handle_ask_feelings)
+        else:
+            bot.send_message(
+                uid, 
+                f"⚠️ У вас уже есть активная комната!\nКод: `{room_code}`\n\n"
+                "Сначала закройте её, чтобы создать новую.",
+                parse_mode='Markdown'
+            )
     else:
-        bot.send_message(uid, "Ошибка! Сначала нажми /start", reply_markup=get_main_menu())
+        bot.send_message(uid, "❌ Ошибка при создании комнаты.")
+
+
 
 def handle_ask_feelings(message):
     uid = message.chat.id
@@ -119,6 +139,8 @@ def join_room_request(message):
     msg = bot.send_message(uid, "Введите 6-значный код комнаты:", reply_markup=get_room_menu())
     bot.register_next_step_handler(msg, validate_received_code)
 
+
+
 def validate_received_code(message):
     uid = message.chat.id
     if message.text == "⬅️ Отмена":
@@ -142,28 +164,56 @@ def validate_received_code(message):
         bot.send_message(uid, "❓ Код неверный.", reply_markup=get_main_menu())
     else:
         bot.send_message(uid, "❌ Ошибка.", reply_markup=get_main_menu())
+      
+        print(f"DEBUG: Result from DB was: {result}") # Это покажет, что именно пошло не так
+        bot.send_message(uid, "❌ Ошибка.", reply_markup=get_main_menu())
         
+
 
 
 def process_initial_text(message):
     uid = message.chat.id
     text = message.text
 
+   
     if text == "⬅️ Отмена":
         bot.send_message(uid, "Вход отменен.", reply_markup=get_main_menu())
         return
-    
     if text == "❌ Закрыть комнату":
         return close_room_action(message)
 
-    partner_id = asyncio.run(save_message_to_db(uid, text))
     
-    bot.send_message(uid, "✅ Сохранено. Теперь вы в чате.", reply_markup=get_room_menu())
+    result = asyncio.run(save_message_to_db(uid, text))
+    
+    if not result:
+        bot.send_message(uid, "❌ Ошибка: комната не найдена.")
+        return
 
-    if partner_id:
-        bot.send_message(partner_id, f"✉️ Сообщение от партнера:\n\n{text}")
+    if result.get("status") == "already_sent":
+        bot.send_message(uid, "⚠️ Вы уже записали свои переживания. Ожидайте совета или партнера.")
+        return
+
+    
+    bot.send_message(uid, "✅ Ваши переживания сохранены.")
+
+    
+    if result.get("both_ready"):
+        advice_text = result.get("advice") or "Ваши мысли услышаны обеими сторонами. Попробуйте обсудить их спокойно."
+        
+        
+        bot.send_message(uid, f"💡 Совет от AI для вас обоих:\n\n{advice_text}")
+        if result.get("partner_tg_id"):
+            bot.send_message(result["partner_tg_id"], f"💡 Совет от AI для вас обоих:\n\n{advice_text}")
+    else:
+        
+        if result.get("partner_tg_id"):
+            bot.send_message(result["partner_tg_id"], "✉️ Ваш партнер поделился своими переживаниями. Теперь ваша очередь!")
 
 
+
+# @bot.message_handler(func=lambda message: True)
+# def echo_all(message):
+#    print(f"ID пользователя {message.from_user.first_name}: {message.from_user.id}")
 
 bot.polling(none_stop=True)
 
