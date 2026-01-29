@@ -1,5 +1,7 @@
 fastapi
 uvicorn
+websockets
+
 python-multipart
 pydantic
 pydantic[email]

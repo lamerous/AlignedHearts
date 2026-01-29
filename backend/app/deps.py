@@ -1,8 +1,11 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from fastapi import Depends, HTTPException, status, Request
+
+from fastapi import Depends, HTTPException, status, Request, WebSocket
 from fastapi.security import OAuth2PasswordBearer
+from starlette.requests import HTTPConnection
+
 from jose import jwt, JWTError
 from dotenv import load_dotenv
 
@@ -31,15 +34,15 @@ def get_db():
         db.close()
 
 async def get_current_user(
-    request: Request, 
+    connection: HTTPConnection, 
     db: Session = Depends(get_db)
 ):
-    token = request.cookies.get("access_token")
+    token = connection.cookies.get("access_token")
     
     if token and token.startswith("Bearer "):
         token = token.split(" ")[1]
     else:
-        auth_header = request.headers.get("Authorization")
+        auth_header = connection.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
 

@@ -1,15 +1,20 @@
 import os
 import secrets
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
+
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 
 from app.auth import router as auth_router
 from app.rooms import router as rooms_router
 from app.profile import router as profile_router
+from app.websockets import router as websocket_router
+
 from app.models import Base
 from app.database import engine
 
@@ -26,10 +31,20 @@ app = FastAPI(
     openapi_url=None
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET"))
+
 app.include_router(auth_router)
 app.include_router(rooms_router)
 app.include_router(profile_router)
+app.include_router(websocket_router)
 
 security = HTTPBasic()
 SWAGGER_USER = os.getenv("SWAGGER_USER").encode("utf-8")

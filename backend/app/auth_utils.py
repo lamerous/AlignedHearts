@@ -13,7 +13,7 @@ def set_auth_cookie(response: Response, token: str):
         key="access_token",
         value=token,
         httponly=True,
-        max_age=1800,
+        max_age=3600,
         samesite="lax",
         secure=False
     )
@@ -32,6 +32,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=30))
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=60))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
