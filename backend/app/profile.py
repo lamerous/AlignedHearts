@@ -11,7 +11,7 @@ from app.s3client import S3Client
 from app.auth_utils import create_access_token, set_auth_cookie, verify_password, hash_password
 from app.room_utils import generate_room_code
 
-from typing import List
+from typing import List, Optional
 
 import puremagic
 
@@ -27,6 +27,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 @router.get("/history", response_model=List[RoomHistoryItem])
 async def user_history(
+    limit: Optional[int] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -35,7 +36,7 @@ async def user_history(
             Room.owner_id == current_user.id,
             Room.member_id == current_user.id
         )
-    ).order_by(Room.created_at.desc()).all()
+    ).order_by(Room.created_at.desc()).limit(limit).all()
 
     return rooms
 
