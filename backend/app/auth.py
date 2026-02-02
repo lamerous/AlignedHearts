@@ -34,7 +34,7 @@ async def register(user_data: schemas.UserCreate, response: Response, db: Sessio
         email=user_data.email,
         sex=user_data.sex,
         hashed_password=auth_utils.hash_password(user_data.password),
-        avatar=f"https://storage-667.s3hoster.by/alignedhearts/avatar{randint(1, 5)}.jpg"
+        avatar=f"https://storage-667.s3hoster.by/alignedhearts/avatars/avatar{randint(1, 5)}.jpg"
     )
     db.add(new_user)
     db.commit()
