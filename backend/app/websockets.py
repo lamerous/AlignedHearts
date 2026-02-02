@@ -61,25 +61,7 @@ async def websocket_endpoint(
                         room_id,
                         exclude_socket=websocket
                     )
-
-                elif data.get("type") == "message":
-                    text = data.get("text")
-
-                    if current_user.id == room.owner_id:
-                        pass
-
-                    if current_user.id == room.member_id:
-                        pass
-
-                    await manager.broadcast(
-                        {
-                            "type": "message",
-                            "text": text
-                        },
-                        room_id,
-                        exclude_socket=websocket
-                    )
-
+                    
             except Exception as err:
                 print(err)
 
