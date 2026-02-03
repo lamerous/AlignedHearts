@@ -20,6 +20,9 @@ class UserLogin(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserTgCreate(UserBase):
+    telegram_id: int
+
 class UserRead(UserBase):
     id: int
     avatar: str

@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-from fastapi import Depends, HTTPException, status, Request, WebSocket
+from fastapi import Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer
 from starlette.requests import HTTPConnection
 
@@ -16,6 +16,8 @@ from app.database import SessionLocal
 from app.s3client import S3Client
 
 load_dotenv()
+
+TELEGRAM_BOT_KEY = os.getenv("TELEGRAM_BOT_KEY")
 
 s3client = S3Client(
     access_key=os.getenv("S3_ACCESS_KEY"),
@@ -35,8 +37,18 @@ def get_db():
 
 async def get_current_user(
     connection: HTTPConnection, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    x_tg_key: str = Header(None, alias="X-Telegram-Key"),
+    x_tg_user_id: int = Header(None, alias="X-Telegram-User-Id")
 ):
+    # Is the client telegram server
+    if x_tg_key and x_tg_key == TELEGRAM_BOT_KEY and x_tg_user_id:
+        user = db.query(User).filter(User.telegram_id == x_tg_user_id).first()
+        if user:
+            return user
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Auth using JWT token
     token = connection.cookies.get("access_token")
     
     if token and token.startswith("Bearer "):
@@ -48,6 +60,8 @@ async def get_current_user(
 
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # If no auth token check headers
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
