@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.schemas import RoomCreateResponse, RoomConnectResponse
 from app.deps import get_current_user, get_db
@@ -36,7 +37,7 @@ async def create_room(current_user=Depends(get_current_user), db: Session = Depe
 
     return {
         "code": room_code,
-        "ws_url": f"ws://alignedhearts.ru/{room.id}"
+        "ws_url": f"ws://alignedhearts.ru/{new_room.id}"
     }
 
 @router.post("/connect", response_model=RoomConnectResponse)
@@ -64,15 +65,29 @@ async def delete_created_room(
     current_user=Depends(get_current_user), db: Session = Depends(get_db)
 ):
     try:
-        db.query(Room).filter(
+        room = db.query(Room).filter(
+            or_(
             Room.owner_id == current_user.id,
+            Room.member_id == current_user.id
+            ),
             Room.status == "active"
-        ).delete(synchronize_session=False)
+        ).first()
 
-        db.commit()
+        if room and room.member_id:
+            partner_id = room.member_id if current_user.id == room.owner_id else room.owner_id
+        else:
+            partner_id = -1
+
+        if room:
+            db.delete(room)
+            db.commit()
+
+        return {
+            "message": "Вы отменили поиск комнат",
+            "partner_id": partner_id
+        }
+
     except Exception as err:
         db.rollback()
         print("Error:", err)
         raise HTTPException(status_code=500, detail="Ошибка обновления статуса комнаты")
-
-    return {"message": "Вы отменили поиск комнат"}
