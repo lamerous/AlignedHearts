@@ -1,7 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { LogOut, User, UserCircle } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { apiFetch } from '@/core/api/apiFetch';
 import { Button } from '@/core/ui/button';
 import {
   DropdownMenu,
@@ -11,29 +9,15 @@ import {
 } from '@/core/ui/dropdown-menu';
 import { Logo } from '@/core/ui/logo';
 
+import { useLogout } from '../hooks/useLogout';
+
 export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { mutate: logout } = useLogout();
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    !!localStorage.getItem('auth_token'),
-  );
-
-  useEffect(() => {
-    setIsAuthenticated(!!localStorage.getItem('auth_token'));
-  }, [location.pathname]);
-
-  const handleLogout = useCallback(async () => {
-    try {
-      await apiFetch('/auth/logout', { method: 'GET' });
-    } catch (error) {
-      console.error('Ошибка при выходе:', error);
-    } finally {
-      localStorage.removeItem('auth_token');
-      setIsAuthenticated(false);
-      navigate({ to: '/' });
-    }
-  }, [navigate, setIsAuthenticated]);
+  const isAuthenticated =
+    !!location.pathname && !!localStorage.getItem('auth_token');
 
   return (
     <header className="sticky top-0 z-50 h-20 w-full bg-[#FFF2F3] shadow-[0_6px_4px_rgba(0,0,0,0.12)]">
@@ -53,21 +37,21 @@ export const Header = () => {
             <Link
               to="/"
               hash="info"
-              className="text-base font-medium text-[#4A4A4A] transition-colors hover:text-[#F61064]"
+              className="text-base font-medium text-[#4A4A4A] hover:text-[#F61064]"
             >
               Инфо
             </Link>
             <Link
               to="/"
               hash="features"
-              className="text-base font-medium text-[#4A4A4A] transition-colors hover:text-[#F61064]"
+              className="text-base font-medium text-[#4A4A4A] hover:text-[#F61064]"
             >
               Функции
             </Link>
             <Link
               to="/"
               hash="privacy"
-              className="text-base font-medium text-[#4A4A4A] transition-colors hover:text-[#F61064]"
+              className="text-base font-medium text-[#4A4A4A] hover:text-[#F61064]"
             >
               Приватность
             </Link>
@@ -85,15 +69,15 @@ export const Header = () => {
                 className="w-48 rounded-xl border-none bg-white p-2 shadow-xl"
               >
                 <DropdownMenuItem
-                  onClick={() => navigate({ to: '/profile' })}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3 transition-colors duration-300 hover:bg-[#FFF2F3]"
+                  onClick={() => navigate({ to: '/profile/me' })}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3 hover:bg-[#FFF2F3]"
                 >
                   <User className="h-4 w-4" />
                   <span>Профиль</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3"
+                  onClick={() => logout()}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3 text-red-600"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Выйти</span>
@@ -104,7 +88,7 @@ export const Header = () => {
             <Button
               variant="outline"
               asChild
-              className="rounded-5 h-11 border-2 border-[#F61064] px-5.5 text-base font-medium text-[#F61064] transition-colors duration-300 hover:bg-[#F61064] hover:text-white"
+              className="h-11 border-2 border-[#F61064] px-6 text-base font-medium text-[#F61064] hover:bg-[#F61064] hover:text-white"
             >
               <Link to="/auth/login">Войти</Link>
             </Button>

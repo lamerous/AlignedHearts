@@ -9,32 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './__root'
-import { Route as IndexRouteImport } from './index'
-import { Route as ProfileSettingsRouteImport } from './profile.settings'
 import { Route as ProfileMeRouteImport } from './profile.me'
 import { Route as ProfileHistoryRouteImport } from './profile.history'
 import { Route as AuthSignupRouteImport } from './auth.signup'
 import { Route as AuthLoginRouteImport } from './auth.login'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
-  id: '/profile/settings',
-  path: '/profile/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProfileMeRoute = ProfileMeRouteImport.update({
   id: '/profile/me',
   path: '/profile/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileHistoryRoute = ProfileHistoryRouteImport.update({
-  id: '/profile/history',
-  path: '/profile/history',
-  getParentRoute: () => rootRouteImport,
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
@@ -48,82 +36,45 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/me': typeof ProfileMeRoute
-  '/profile/settings': typeof ProfileSettingsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/me': typeof ProfileMeRoute
-  '/profile/settings': typeof ProfileSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/me': typeof ProfileMeRoute
-  '/profile/settings': typeof ProfileSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/auth/login'
-    | '/auth/signup'
-    | '/profile/history'
-    | '/profile/me'
-    | '/profile/settings'
+  fullPaths: '/auth/login' | '/auth/signup' | '/profile/history' | '/profile/me'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth/login'
-    | '/auth/signup'
-    | '/profile/history'
-    | '/profile/me'
-    | '/profile/settings'
+  to: '/auth/login' | '/auth/signup' | '/profile/history' | '/profile/me'
   id:
     | '__root__'
-    | '/'
     | '/auth/login'
     | '/auth/signup'
     | '/profile/history'
     | '/profile/me'
-    | '/profile/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
-  ProfileHistoryRoute: typeof ProfileHistoryRoute
   ProfileMeRoute: typeof ProfileMeRoute
-  ProfileSettingsRoute: typeof ProfileSettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile/settings': {
-      id: '/profile/settings'
-      path: '/profile/settings'
-      fullPath: '/profile/settings'
-      preLoaderRoute: typeof ProfileSettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/profile/me': {
       id: '/profile/me'
       path: '/profile/me'
@@ -133,10 +84,10 @@ declare module '@tanstack/react-router' {
     }
     '/profile/history': {
       id: '/profile/history'
-      path: '/profile/history'
+      path: '/history'
       fullPath: '/profile/history'
       preLoaderRoute: typeof ProfileHistoryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/auth/signup': {
       id: '/auth/signup'
@@ -156,12 +107,9 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
-  ProfileHistoryRoute: ProfileHistoryRoute,
   ProfileMeRoute: ProfileMeRoute,
-  ProfileSettingsRoute: ProfileSettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

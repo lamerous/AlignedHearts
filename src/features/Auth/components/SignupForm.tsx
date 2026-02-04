@@ -1,59 +1,27 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { useCallback } from 'react';
+import { Link } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
-import { apiFetch } from '@/core/api/apiFetch';
 import { Button } from '@/core/ui/button';
 import { Card, CardContent } from '@/core/ui/card';
 import { Input } from '@/core/ui/input';
 
 import googleIcon from '../assets/img/googleIcon.svg';
-import { signupSchema } from '../constants/schemas';
+import { signupSchema } from '../constants/authSchemas';
+import { useSignup } from '../hooks/useSignup';
 import type { SignupFormValues } from '../types/schemas.types';
 
 export const SignupForm = () => {
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: { sex: 'male' },
   });
 
-  const onSubmit = useCallback(
-    async (values: SignupFormValues) => {
-      try {
-        const { confirmPassword, ...sendData } = values;
-        void confirmPassword;
-
-        const result = await apiFetch<{ access_token: string }>(
-          '/auth/register',
-          {
-            method: 'POST',
-            body: sendData,
-          },
-        );
-
-        localStorage.setItem('auth_token', result.access_token);
-        navigate({ to: '/profile' });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Ошибка регистрации';
-
-        if (message.includes('500')) {
-          setError('username', { message: 'Имя пользователя уже занято' });
-        } else if (message.includes('Email already registered')) {
-          setError('email', { message: 'Этот Email уже используется' });
-        } else {
-          setError('username', { message });
-        }
-      }
-    },
-    [navigate, setError],
-  );
+  const { mutate, isPending } = useSignup(setError);
 
   return (
     <Card className="flex w-full max-w-136 flex-col items-center rounded-4xl border-none bg-[rgba(255,240,250,0.58)] px-20 py-10 shadow-2xl backdrop-blur-md">
@@ -63,7 +31,7 @@ export const SignupForm = () => {
         </h1>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(data => mutate(data))}
           className="flex w-full flex-col gap-2"
         >
           <div className="relative pb-5">
@@ -73,7 +41,7 @@ export const SignupForm = () => {
               className={`h-10 w-full rounded-2xl border-none bg-white/58 px-6 shadow-[0px_4px_4px_rgba(0,0,0,0.25)] outline-none focus:ring-2 focus:ring-[#F61064] ${errors.username ? 'ring-2 ring-red-500' : ''}`}
             />
             {errors.username && (
-              <span className="absolute bottom-0 left-2 text-[12px] leading-4 text-red-600">
+              <span className="absolute bottom-0 left-2 text-[12px] text-red-600">
                 {errors.username.message}
               </span>
             )}
@@ -86,7 +54,7 @@ export const SignupForm = () => {
               className={`h-10 w-full rounded-2xl border-none bg-white/58 px-6 shadow-[0px_4px_4px_rgba(0,0,0,0.25)] outline-none focus:ring-2 focus:ring-[#F61064] ${errors.email ? 'ring-2 ring-red-500' : ''}`}
             />
             {errors.email && (
-              <span className="absolute bottom-0 left-2 text-[12px] leading-4 text-red-600">
+              <span className="absolute bottom-0 left-2 text-[12px] text-red-600">
                 {errors.email.message}
               </span>
             )}
@@ -100,7 +68,7 @@ export const SignupForm = () => {
               className={`h-10 w-full rounded-2xl border-none bg-white/58 px-6 shadow-[0px_4px_4px_rgba(0,0,0,0.25)] outline-none focus:ring-2 focus:ring-[#F61064] ${errors.password ? 'ring-2 ring-red-500' : ''}`}
             />
             {errors.password && (
-              <span className="absolute bottom-0 left-2 text-[12px] leading-4 text-red-600">
+              <span className="absolute bottom-0 left-2 text-[12px] text-red-600">
                 {errors.password.message}
               </span>
             )}
@@ -114,7 +82,7 @@ export const SignupForm = () => {
               className={`h-10 w-full rounded-2xl border-none bg-white/58 px-6 shadow-[0px_4px_4px_rgba(0,0,0,0.25)] outline-none focus:ring-2 focus:ring-[#F61064] ${errors.confirmPassword ? 'ring-2 ring-red-500' : ''}`}
             />
             {errors.confirmPassword && (
-              <span className="absolute bottom-0 left-2 text-[12px] leading-4 text-red-600">
+              <span className="absolute bottom-0 left-2 text-[12px] text-red-600">
                 {errors.confirmPassword.message}
               </span>
             )}
@@ -143,10 +111,10 @@ export const SignupForm = () => {
 
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="mb-2 h-14 w-full cursor-pointer rounded-4xl bg-[#F61064] text-[20px] font-medium text-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-black"
+            disabled={isPending}
+            className="mb-2 h-14 w-full cursor-pointer rounded-4xl bg-[#F61064] text-[20px] font-medium text-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors hover:bg-black"
           >
-            {isSubmitting ? 'Загрузка...' : 'Зарегистрироваться'}
+            {isPending ? 'Загрузка...' : 'Зарегистрироваться'}
           </Button>
 
           <Button
@@ -155,7 +123,7 @@ export const SignupForm = () => {
               (window.location.href =
                 'https://alignedhearts.ru/api/auth/google/login')
             }
-            className="h-14 w-full cursor-pointer rounded-4xl bg-white/96 text-[20px] font-medium text-[#7F7F7F] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-white/96 hover:text-[#F61064]"
+            className="h-14 w-full cursor-pointer rounded-4xl bg-white/96 text-[20px] font-medium text-[#7F7F7F] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors hover:text-[#F61064]"
           >
             <img
               src={googleIcon}
@@ -170,7 +138,7 @@ export const SignupForm = () => {
           Уже есть аккаунт?{' '}
           <Link
             to="/auth/login"
-            className="font-bold text-[#F61064] decoration-1 hover:underline"
+            className="font-bold text-[#F61064] hover:underline"
           >
             Войти
           </Link>

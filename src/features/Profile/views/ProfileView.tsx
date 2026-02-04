@@ -1,0 +1,123 @@
+import { useNavigate } from '@tanstack/react-router';
+import { ArrowRight, LogOut, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { useLogout } from '@/core/hooks/useLogout';
+import { Button } from '@/core/ui/button';
+
+import standartAvatar from '../assets/img/standartAvatar.svg';
+import { EmptyHistory } from '../components/EmptyHistory';
+import { ErrorMessage } from '../components/ErrorMessage';
+import { HistoryCard } from '../components/HistoryCard';
+import { Loader } from '../components/Loader';
+import { useGetHistory } from '../hooks/useGetHistory';
+import { useGetMe } from '../hooks/useGetMe';
+
+export const ProfileView = () => {
+  const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isError: isUserError,
+  } = useGetMe();
+  const {
+    data: history = [],
+    isLoading: isHistoryLoading,
+    isError: isHistoryError,
+  } = useGetHistory();
+  const { mutate: logout } = useLogout();
+
+  if (isUserError || isHistoryError) return <ErrorMessage />;
+  if (isUserLoading || isHistoryLoading) return <Loader />;
+
+  return (
+    <div className="min-h-screen bg-[#F9EBEC] pb-20">
+      <section className="container mx-auto px-14 pt-12">
+        <div className="flex items-start justify-between">
+          <div className="flex gap-20">
+            <div className="flex h-50 w-50 items-center justify-center rounded-full">
+              {user?.avatar && !imageError ? (
+                <img
+                  src={user.avatar}
+                  alt="User avatar"
+                  className="h-full w-full"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <img
+                  src={standartAvatar}
+                  alt="Standart user avatar"
+                  className="h-full w-full object-cover"
+                />
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2 pt-4">
+              <h1 className="font-days text-[40px] leading-tight text-black">
+                {user?.username}
+              </h1>
+              <span
+                className={`font-days text-3xl ${user?.sex === 'male' ? 'text-[#155DFC]' : 'text-[#F61064]'}`}
+              >
+                (
+                {user?.sex === 'male'
+                  ? 'М'
+                  : user?.sex === 'female'
+                    ? 'Ж'
+                    : '?'}
+                )
+              </span>
+              <p className="mt-4 text-2xl font-medium text-[#919191]">
+                @user{user?.id}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate({ to: '/profile/settings' })}
+              className="flex cursor-pointer items-center gap-2 hover:bg-[#F9EBEC] hover:text-[#F61064]"
+            >
+              <Settings size={20} />
+              Настройки
+            </Button>
+            <Button
+              onClick={() => logout()}
+              className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-[#F61064] bg-transparent px-4 py-2 text-[#F61064] transition-colors hover:bg-[#F61064] hover:text-white"
+            >
+              Выйти <LogOut size={18} />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <div className="my-16 h-0.5 w-full bg-[#7F7F7F]/30" />
+
+      <section className="container mx-auto px-14">
+        <div className="mb-10 flex items-center justify-between">
+          <h2 className="font-days text-[32px] text-black">История запросов</h2>
+          {history.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => navigate({ to: '/profile/history' })}
+              className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-[#F61064] bg-transparent text-[#F61064] hover:bg-[#F61064] hover:text-white"
+            >
+              Подробнее <ArrowRight size={20} />
+            </Button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+          {history.length > 0 ? (
+            history
+              .slice(-3)
+              .map(item => <HistoryCard key={item.id} item={item} />)
+          ) : (
+            <EmptyHistory />
+          )}
+        </div>
+      </section>
+    </div>
+  );
+};

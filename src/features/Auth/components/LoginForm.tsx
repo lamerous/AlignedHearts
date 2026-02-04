@@ -1,43 +1,27 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { useCallback } from 'react';
+import { Link } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
-import { apiFetch } from '@/core/api/apiFetch';
+import { GOOGLE_LOGIN_URL } from '@/core/constants/api';
 import { Button } from '@/core/ui/button';
 import { Card, CardContent } from '@/core/ui/card';
 import { Input } from '@/core/ui/input';
 
 import googleIcon from '../assets/img/googleIcon.svg';
-import { loginSchema } from '../constants/schemas';
+import { loginSchema } from '../constants/authSchemas';
+import { useLogin } from '../hooks/useLogin';
 import type { LoginFormValues } from '../types/schemas.types';
 
 export const LoginForm = () => {
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = useCallback(
-    async (data: LoginFormValues) => {
-      try {
-        const result = await apiFetch<{ access_token: string }>('/auth/login', {
-          method: 'POST',
-          body: data,
-        });
-        localStorage.setItem('auth_token', result.access_token);
-        navigate({ to: '/profile' });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Ошибка входа';
-        setError('email', { type: 'manual', message });
-      }
-    },
-    [navigate, setError],
-  );
+  const { mutate, isPending } = useLogin(setError);
 
   return (
     <Card className="flex flex-col items-center rounded-4xl border-none bg-[rgba(255,240,250,0.58)] px-20 py-10 shadow-2xl backdrop-blur-md">
@@ -45,7 +29,7 @@ export const LoginForm = () => {
         <h1 className="font-days mb-12 text-[40px] text-[#F61064]">Вход</h1>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(data => mutate(data))}
           className="flex w-full flex-col gap-2"
         >
           <div className="relative pb-5">
@@ -77,18 +61,15 @@ export const LoginForm = () => {
 
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isPending}
             className="mb-2 h-14 w-full cursor-pointer rounded-4xl bg-[#F61064] text-[20px] font-medium text-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-black"
           >
-            {isSubmitting ? 'Загрузка...' : 'Войти'}
+            {isPending ? 'Загрузка...' : 'Войти'}
           </Button>
 
           <Button
             type="button"
-            onClick={() =>
-              (window.location.href =
-                'https://alignedhearts.ru/api/auth/google/login')
-            }
+            onClick={() => (window.location.href = GOOGLE_LOGIN_URL)}
             className="h-14 w-full cursor-pointer rounded-4xl bg-white/96 text-[20px] font-medium text-[#7F7F7F] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-white/96 hover:text-[#F61064]"
           >
             <img
