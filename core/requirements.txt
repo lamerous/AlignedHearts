@@ -1,3 +1,7 @@
+fastapi
+uvicorn
+websockets
+
 torch
 transformers
 safetensors

@@ -19,6 +19,8 @@ async def websocket_endpoint(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    room_id = str(room_id)
+
     await websocket.accept()
 
     room = db.query(Room).filter(
@@ -66,8 +68,21 @@ async def websocket_endpoint(
 
                 if data.get("type") == "message":
                     user_text = data.get("text")
+                    user_sex = "мужчина" if current_user.sex == "male" else "женщина"
 
-                    asyncio.create_task(manager.get_ai_response_stream(user_text, room_id))
+                    status = await manager.handle_message(
+                        room_id=room_id,
+                        user_id=current_user.id,
+                        text=user_text,
+                        sex=user_sex,
+                        owner_id=room.owner_id
+                    )
+
+                    if status == "waiting":
+                        await websocket.send_json({
+                            "type": "info", 
+                            "content": "Сообщение сохранено. Ожидаем партнера."
+                        })
                     
             except Exception as err:
                 print(err)
