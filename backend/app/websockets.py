@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from app.models import User, Room
 from app.deps import get_current_user, get_db
 
+import asyncio
+
 router = APIRouter(prefix="/ws", tags=["Websocket"])
 manager = ConnectionManager()
 
@@ -46,7 +48,7 @@ async def websocket_endpoint(
     try:
         while True:
             try:
-                data = await websocket.receive_json() #
+                data = await websocket.receive_json()
             except Exception:
                 await websocket.send_json({"error": "Invalid JSON format"})
                 continue
@@ -61,6 +63,11 @@ async def websocket_endpoint(
                         room_id,
                         exclude_socket=websocket
                     )
+
+                if data.get("type") == "message":
+                    user_text = data.get("text")
+
+                    asyncio.create_task(manager.get_ai_response_stream(user_text, room_id))
                     
             except Exception as err:
                 print(err)
