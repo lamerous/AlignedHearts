@@ -37,7 +37,7 @@ async def create_room(current_user=Depends(get_current_user), db: Session = Depe
 
     return {
         "code": room_code,
-        "ws_url": f"ws://alignedhearts.ru/{new_room.id}"
+        "ws_url": f"ws://alignedhearts.ru/ws/{new_room.id}"
     }
 
 @router.post("/connect", response_model=RoomConnectResponse)
@@ -57,7 +57,7 @@ async def room_connect(
     db.commit()
 
     return {
-        "ws_url": f"ws://alignedhearts.ru/{room.id}"
+        "ws_url": f"ws://alignedhearts.ru/ws/{room.id}"
     }
 
 @router.delete("/cancel")
