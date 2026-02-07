@@ -34,8 +34,9 @@ async def user_history(
     rooms = db.query(Room).filter(
         or_(
             Room.owner_id == current_user.id,
-            Room.member_id == current_user.id
-        )
+            Room.member_id == current_user.id,
+        ),
+        Room.status != "active"
     ).order_by(Room.created_at.desc()).limit(limit).all()
 
     return rooms
