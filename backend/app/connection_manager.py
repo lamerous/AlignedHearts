@@ -19,6 +19,15 @@ class ConnectionManager:
             self.active_connections[room_id] = []
         self.active_connections[room_id].append(websocket)
 
+        if len(self.active_connections[room_id]) == 2:
+            await self.broadcast(
+                {
+                    "type": "room_ready",
+                    "content": "Второй пользователь подключился. Комната готова!"
+                },
+                room_id
+            )
+
     def disconnect(self, websocket: WebSocket, room_id: str):
         self.active_connections[room_id].remove(websocket)
         if not self.active_connections[room_id]:
