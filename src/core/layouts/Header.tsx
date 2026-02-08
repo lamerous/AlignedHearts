@@ -1,5 +1,5 @@
-import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import { LogOut, User, UserCircle } from 'lucide-react';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { LogOut, User } from 'lucide-react';
 import { Button } from '@/core/ui/button';
 import {
   DropdownMenu,
@@ -8,16 +8,18 @@ import {
   DropdownMenuTrigger,
 } from '@/core/ui/dropdown-menu';
 import { Logo } from '@/core/ui/logo';
+import { useGetMe } from '@/features/Profile/hooks/useGetMe';
 
 import { useLogout } from '../hooks/useLogout';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { mutate: logout } = useLogout();
 
-  const isAuthenticated =
-    !!location.pathname && !!localStorage.getItem('auth_token');
+  const { data: user } = useGetMe();
+
+  const isPreviouslyLoggedIn = !!localStorage.getItem('is_auth');
+  const isAuthenticated = isPreviouslyLoggedIn || !!user;
 
   return (
     <header className="sticky top-0 z-50 h-20 w-full bg-[#FFF2F3] shadow-[0_6px_4px_rgba(0,0,0,0.12)]">
@@ -57,42 +59,52 @@ export const Header = () => {
             </Link>
           </nav>
 
-          {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="outline-none">
-                <div className="group flex cursor-pointer items-center justify-center transition-transform hover:scale-110">
-                  <UserCircle className="h-10 w-10 text-[#F61064]" />
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-48 rounded-xl border-none bg-white p-2 shadow-xl"
+          <div className="flex items-center">
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="outline-none">
+                  <div className="group flex cursor-pointer items-center justify-center transition-transform hover:scale-110">
+                    {user?.avatar && (
+                      <img
+                        src={user.avatar}
+                        alt="Avatar"
+                        className="h-14 w-14 rounded-full object-cover"
+                      />
+                    )}
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-48 rounded-xl border-none bg-white p-2 shadow-xl"
+                >
+                  <DropdownMenuItem
+                    onClick={() => navigate({ to: '/profile/me' })}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg p-3 hover:bg-[#FFF2F3]"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>
+                      Профиль {user?.username && `(${user.username})`}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => logout()}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg p-3 text-red-600"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Выйти</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="outline"
+                asChild
+                className="h-11 border-2 border-[#F61064] px-6 text-base font-medium text-[#F61064] hover:bg-[#F61064] hover:text-white"
               >
-                <DropdownMenuItem
-                  onClick={() => navigate({ to: '/profile/me' })}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3 hover:bg-[#FFF2F3]"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Профиль</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => logout()}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg p-3 text-red-600"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Выйти</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button
-              variant="outline"
-              asChild
-              className="h-11 border-2 border-[#F61064] px-6 text-base font-medium text-[#F61064] hover:bg-[#F61064] hover:text-white"
-            >
-              <Link to="/auth/login">Войти</Link>
-            </Button>
-          )}
+                <Link to="/auth/login">Войти</Link>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </header>

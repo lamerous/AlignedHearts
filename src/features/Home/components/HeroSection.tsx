@@ -1,17 +1,19 @@
+import { Link } from '@tanstack/react-router';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/core/ui/button';
 
 import coupleImg from '../assets/img/couple.png';
 import vectorLine from '../assets/img/vectorLine.svg';
-import { BackgroundBlobs } from './BackgroundBlobs';
-
-const FEATURES: string[] = ['100% Конфиденциально', 'Сквозное шифрование'];
+import { BackgroundBlobs } from '../components/BackgroundBlobs';
+import { HERO_FEATURES } from '../constants/home.contants';
 
 export const HeroSection = () => {
   return (
-    <section className="relative flex min-h-svh w-full items-center overflow-hidden">
+    <section
+      id="info"
+      className="relative flex min-h-svh w-full items-center pt-20"
+    >
       <BackgroundBlobs />
-
       <img
         src={vectorLine}
         alt="decoration"
@@ -42,20 +44,23 @@ export const HeroSection = () => {
           </p>
 
           <div className="mb-8 flex flex-wrap items-center gap-6">
-            <Button className="h-14 cursor-pointer rounded-xl bg-[#F61042] px-8 text-xl font-bold text-white shadow-lg transition-all duration-300 hover:bg-black hover:text-white">
+            <Link
+              to="/room/welcome"
+              className="inline-flex h-14 cursor-pointer items-center rounded-xl bg-[#F61042] px-8 text-xl font-bold text-white shadow-lg transition-all duration-300 hover:bg-black hover:text-white active:scale-95"
+            >
               Начать бесплатно
-            </Button>
+            </Link>
 
             <Button
               variant="outline"
-              className="h-14 cursor-pointer rounded-xl border-none bg-white px-8 text-xl font-bold text-black shadow-lg transition-all duration-300 hover:bg-white hover:text-[#F61042]"
+              className="h-14 cursor-pointer rounded-xl border-none bg-white px-8 text-xl font-bold text-black shadow-lg transition-all duration-300 hover:bg-white hover:text-[#F61042] active:scale-95"
             >
               Смотреть демо
             </Button>
           </div>
 
           <div className="flex flex-wrap gap-10">
-            {FEATURES.map(text => (
+            {HERO_FEATURES.map(text => (
               <div
                 key={text}
                 className="flex items-center gap-2 text-lg text-gray-800"
@@ -68,7 +73,7 @@ export const HeroSection = () => {
         </div>
 
         <div className="relative flex flex-1 items-center justify-center pt-10 md:pt-0">
-          <div className="absolute inset-0 -z-10 scale-125 rounded-3xl bg-[#FFF2F3] opacity-70 blur-xl" />
+          <div className="absolute inset-0 -z-10 scale-125 rounded-3xl bg-white blur-2xl" />
           <img
             src={coupleImg}
             alt="Счастливая пара"

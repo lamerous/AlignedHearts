@@ -10,6 +10,9 @@
 
 import { Route as rootRouteImport } from './__root'
 import { Route as IndexRouteImport } from './index'
+import { Route as RoomWelcomeRouteImport } from './room.welcome'
+import { Route as RoomCreateRouteImport } from './room.create'
+import { Route as RoomRoomIdRouteImport } from './room.$roomId'
 import { Route as ProfileSettingsRouteImport } from './profile.settings'
 import { Route as ProfileMeRouteImport } from './profile.me'
 import { Route as ProfileHistoryRouteImport } from './profile.history'
@@ -19,6 +22,21 @@ import { Route as AuthLoginRouteImport } from './auth.login'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomWelcomeRoute = RoomWelcomeRouteImport.update({
+  id: '/room/welcome',
+  path: '/room/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomCreateRoute = RoomCreateRouteImport.update({
+  id: '/room/create',
+  path: '/room/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomRoomIdRoute = RoomRoomIdRouteImport.update({
+  id: '/room/$roomId',
+  path: '/room/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
@@ -54,6 +72,9 @@ export interface FileRoutesByFullPath {
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/me': typeof ProfileMeRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
+  '/room/create': typeof RoomCreateRoute
+  '/room/welcome': typeof RoomWelcomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +83,9 @@ export interface FileRoutesByTo {
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/me': typeof ProfileMeRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
+  '/room/create': typeof RoomCreateRoute
+  '/room/welcome': typeof RoomWelcomeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +95,9 @@ export interface FileRoutesById {
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/me': typeof ProfileMeRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
+  '/room/create': typeof RoomCreateRoute
+  '/room/welcome': typeof RoomWelcomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +108,9 @@ export interface FileRouteTypes {
     | '/profile/history'
     | '/profile/me'
     | '/profile/settings'
+    | '/room/$roomId'
+    | '/room/create'
+    | '/room/welcome'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +119,9 @@ export interface FileRouteTypes {
     | '/profile/history'
     | '/profile/me'
     | '/profile/settings'
+    | '/room/$roomId'
+    | '/room/create'
+    | '/room/welcome'
   id:
     | '__root__'
     | '/'
@@ -97,6 +130,9 @@ export interface FileRouteTypes {
     | '/profile/history'
     | '/profile/me'
     | '/profile/settings'
+    | '/room/$roomId'
+    | '/room/create'
+    | '/room/welcome'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +142,9 @@ export interface RootRouteChildren {
   ProfileHistoryRoute: typeof ProfileHistoryRoute
   ProfileMeRoute: typeof ProfileMeRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
+  RoomRoomIdRoute: typeof RoomRoomIdRoute
+  RoomCreateRoute: typeof RoomCreateRoute
+  RoomWelcomeRoute: typeof RoomWelcomeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -115,6 +154,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/room/welcome': {
+      id: '/room/welcome'
+      path: '/room/welcome'
+      fullPath: '/room/welcome'
+      preLoaderRoute: typeof RoomWelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/room/create': {
+      id: '/room/create'
+      path: '/room/create'
+      fullPath: '/room/create'
+      preLoaderRoute: typeof RoomCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/room/$roomId': {
+      id: '/room/$roomId'
+      path: '/room/$roomId'
+      fullPath: '/room/$roomId'
+      preLoaderRoute: typeof RoomRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile/settings': {
@@ -162,6 +222,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileHistoryRoute: ProfileHistoryRoute,
   ProfileMeRoute: ProfileMeRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
+  RoomRoomIdRoute: RoomRoomIdRoute,
+  RoomCreateRoute: RoomCreateRoute,
+  RoomWelcomeRoute: RoomWelcomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import type { UseFormSetError } from 'react-hook-form';
 import { apiFetch } from '@/core/api/apiFetch';
+import { API_ROUTES } from '@/core/api/endpoints';
 
 import type { SignupFormValues } from '../types/schemas.types';
 
@@ -13,34 +14,29 @@ export const useSignup = (setError: UseFormSetError<SignupFormValues>) => {
     mutationFn: (values: SignupFormValues) => {
       const { confirmPassword, ...sendData } = values;
       void confirmPassword;
-
-      return apiFetch<{ access_token: string }>('/auth/register', {
+      return apiFetch(API_ROUTES.auth.register, {
         method: 'POST',
         body: sendData,
       });
     },
-    onSuccess: result => {
-      localStorage.setItem('auth_token', result.access_token);
-      queryClient.clear();
+    onSuccess: () => {
+      localStorage.setItem('logged_in', 'true');
+      queryClient.invalidateQueries({ queryKey: ['profile', 'me'] });
       navigate({ to: '/profile/me' });
     },
     onError: (error: Error) => {
-      const message = error.message || '';
-
-      if (message.includes('500') || message.includes('already occupied')) {
-        setError('username', {
-          type: 'manual',
-          message: 'Имя пользователя уже занято',
-        });
-      } else if (message.includes('Email already registered')) {
+      const msg = error.message;
+      if (msg.includes('username') || msg.includes('occupied')) {
+        setError('username', { type: 'manual', message: 'Имя уже занято' });
+      } else if (msg.includes('email') || msg.includes('registered')) {
         setError('email', {
           type: 'manual',
-          message: 'Этот Email уже используется',
+          message: 'Email уже используется',
         });
       } else {
         setError('username', {
           type: 'manual',
-          message: message || 'Ошибка регистрации',
+          message: msg || 'Ошибка регистрации',
         });
       }
     },

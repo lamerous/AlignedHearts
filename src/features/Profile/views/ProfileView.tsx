@@ -1,10 +1,9 @@
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowRight, LogOut, Settings } from 'lucide-react';
-import { useState } from 'react';
 import { useLogout } from '@/core/hooks/useLogout';
 import { Button } from '@/core/ui/button';
 
-import standartAvatar from '../assets/img/standartAvatar.svg';
+import { EditableAvatar } from '../components/EditableAvatar';
 import { EmptyHistory } from '../components/EmptyHistory';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { HistoryCard } from '../components/HistoryCard';
@@ -14,7 +13,6 @@ import { useGetMe } from '../hooks/useGetMe';
 
 export const ProfileView = () => {
   const navigate = useNavigate();
-  const [imageError, setImageError] = useState(false);
   const {
     data: user,
     isLoading: isUserLoading,
@@ -35,38 +33,26 @@ export const ProfileView = () => {
       <section className="container mx-auto px-14 pt-12">
         <div className="flex items-start justify-between">
           <div className="flex gap-20">
-            <div className="flex h-50 w-50 items-center justify-center rounded-full">
-              {user?.avatar && !imageError ? (
-                <img
-                  src={user.avatar}
-                  alt="User avatar"
-                  className="h-full w-full"
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <img
-                  src={standartAvatar}
-                  alt="Standart user avatar"
-                  className="h-full w-full object-cover"
-                />
-              )}
-            </div>
+            <EditableAvatar currentAvatar={user?.avatar} size="sm" />
 
             <div className="flex flex-col gap-2 pt-4">
-              <h1 className="font-days text-[40px] leading-tight text-black">
-                {user?.username}
-              </h1>
-              <span
-                className={`font-days text-3xl ${user?.sex === 'male' ? 'text-[#155DFC]' : 'text-[#F61064]'}`}
-              >
-                (
-                {user?.sex === 'male'
-                  ? 'М'
-                  : user?.sex === 'female'
-                    ? 'Ж'
-                    : '?'}
-                )
-              </span>
+              <div className="flex items-baseline gap-4">
+                <h1 className="font-days text-[40px] text-black">
+                  {user?.username}
+                </h1>
+                <span
+                  className={`font-days text-[40px] ${user?.sex === 'male' ? 'text-[#155DFC]' : 'text-[#F61064]'}`}
+                >
+                  (
+                  {user?.sex === 'male'
+                    ? 'М'
+                    : user?.sex === 'female'
+                      ? 'Ж'
+                      : '?'}
+                  )
+                </span>
+              </div>
+
               <p className="mt-4 text-2xl font-medium text-[#919191]">
                 @user{user?.id}
               </p>

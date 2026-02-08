@@ -23,9 +23,7 @@ export const HistoryDetail = ({ item }: Props) => (
 
     <div className="flex flex-col gap-4">
       <div className="rounded-[30px] bg-[#FFD2E4]/95 p-6 shadow-sm">
-        <h3 className="mb-2 text-xl font-semibold text-black">
-          Что можете сделать вы:
-        </h3>
+        <h3 className="mb-2 text-xl font-semibold text-black">ИИ Совет:</h3>
         <p className="text-base text-black/80">
           {item.ai_advice || 'Загрузка рекомендаций...'}
         </p>

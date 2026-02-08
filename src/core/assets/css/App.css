@@ -101,6 +101,10 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    overscroll-behavior: none;
+  }
   * {
     @apply border-border outline-ring/50;
   }
