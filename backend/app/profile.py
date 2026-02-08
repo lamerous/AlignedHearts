@@ -108,11 +108,11 @@ async def change_avatar(
     db: Session = Depends(get_db),
     s3: S3Client = Depends(get_s3_client)
 ):
-    # Check filesize (5 MB)
-    if file.size > 5 * 1024 * 1024:
+    # Check filesize (7 MB)
+    if file.size > 7 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="Файл слишком большой. Максимальный размер 5 МБ"
+            detail="Файл слишком большой. Максимальный размер 7 МБ"
         )
 
     header = await file.read(1024)

@@ -70,6 +70,13 @@ async def websocket_endpoint(
                     user_text = data.get("text")
                     user_sex = "мужчина" if current_user.sex == "male" else "женщина"
 
+                    await manager.broadcast(
+                        {
+                            "type": "partner_ready",
+                            "text": "partner ready"
+                        }
+                    )
+
                     status = await manager.handle_message(
                         room_id=room_id,
                         user_id=current_user.id,

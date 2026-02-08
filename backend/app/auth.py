@@ -93,6 +93,13 @@ async def auth_callback(request: Request, response: Response, db: Session = Depe
     return response
 
 @router.get('/logout')
-async def logout(request: Request):
-    request.session.pop('user', None)
+async def logout(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        # Обязательно те же параметры, что и при создании:
+        samesite="none",
+        secure=True,
+        httponly=True,
+        path="/" # Убедитесь, что путь совпадает (по умолчанию в FastAPI это "/")
+    )
     return {"message": "Вышли из аккаунта"}
