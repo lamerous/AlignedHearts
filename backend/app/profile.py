@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File, status
 
-from sqlalchemy import or_
+from sqlalchemy import or_, case
 from sqlalchemy.orm import Session
 
 from app.schemas import UserRead, RoomHistoryItem, SexEnum
@@ -31,7 +31,20 @@ async def user_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    rooms = db.query(Room).filter(
+    dynamic_text_column = case(
+        (Room.owner_id == current_user.id, Room.owner_text),
+        (Room.member_id == current_user.id, Room.member_text),
+        else_=None
+    ).label("text")
+
+    rooms = db.query(
+        Room.id,
+        Room.owner_id,
+        Room.member_id,
+        dynamic_text_column,
+        Room.ai_advice,
+        Room.created_at
+    ).filter(
         or_(
             Room.owner_id == current_user.id,
             Room.member_id == current_user.id,
