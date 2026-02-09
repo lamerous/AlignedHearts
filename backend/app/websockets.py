@@ -74,7 +74,8 @@ async def websocket_endpoint(
                         {
                             "type": "partner_ready",
                             "text": "partner ready"
-                        }
+                        },
+                        room_id
                     )
 
                     status = await manager.handle_message(
