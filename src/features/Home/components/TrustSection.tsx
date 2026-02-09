@@ -41,7 +41,7 @@ export const TrustSection = () => {
                 </div>
 
                 <div className="flex flex-col gap-2 pt-1">
-                  <h3 className="text-xl font-bold text-black md:text-2xl">
+                  <h3 className="font-inter text-xl font-bold text-black md:text-2xl">
                     {feature.title}
                   </h3>
                   <p className="max-w-125 text-base leading-normal text-gray-800 md:text-lg">

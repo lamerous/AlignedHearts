@@ -8,7 +8,6 @@ export async function apiFetch<T>(
   const { method = 'GET', body, headers, params } = options;
 
   const url = new URL(`${BASE_URL}${endpoint}`);
-  console.log(url);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {

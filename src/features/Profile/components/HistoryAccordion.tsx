@@ -28,7 +28,7 @@ export const HistoryAccordion = ({ items, selectedId, onSelect }: Props) => {
           <AccordionItem
             key={item.id}
             value={String(item.id)}
-            className="rounded-[30px] border-none bg-[#F9F9F9] px-6 shadow-md transition-all data-[state=open]:bg-white"
+            className="rounded-[30px] border-none bg-[#F9F9F9] px-6 break-all shadow-md transition-all data-[state=open]:bg-white"
           >
             <AccordionTrigger
               className="group cursor-pointer py-6 hover:no-underline [&[data-state=open]>svg]:rotate-180"
@@ -53,7 +53,7 @@ export const HistoryAccordion = ({ items, selectedId, onSelect }: Props) => {
 
             <AccordionContent className="pb-6">
               <div className="rounded-[30px] bg-[#FFF0FA] p-6 text-lg leading-relaxed text-[#4A4A4A]">
-                {item.owner_text}
+                {item.ai_advice}
               </div>
             </AccordionContent>
           </AccordionItem>

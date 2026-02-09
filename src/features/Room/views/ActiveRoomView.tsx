@@ -1,10 +1,11 @@
-import { getRouteApi } from '@tanstack/react-router';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { Copy, Loader2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-import { toast } from 'sonner';
+import { useEffect, useRef, useState } from 'react';
+import { apiFetch } from '@/core/api/apiFetch';
+import { API_ROUTES } from '@/core/api/endpoints';
 import { Button } from '@/core/ui/button';
 import { Card } from '@/core/ui/card';
+import { Logo } from '@/core/ui/logo';
 import { Textarea } from '@/core/ui/textarea';
 import { Background } from '@/features/Room/components/Background';
 
@@ -13,7 +14,7 @@ const routeApi = getRouteApi('/room/$roomId');
 const STATUS = {
   WAITING_PARTNER: 'WAITING_PARTNER',
   WRITING: 'WRITING',
-  WAITING_OTHER: 'WAITING_OTHER',
+  WAITING_OTHER_FINISH: 'WAITING_OTHER_FINISH',
   GENERATING: 'GENERATING',
   RESULTS: 'RESULTS',
 } as const;
@@ -21,161 +22,169 @@ const STATUS = {
 type RoomStatus = keyof typeof STATUS;
 
 export const ActiveRoomView = () => {
+  const navigate = useNavigate();
   const { roomId } = routeApi.useParams();
   const { wsUrl: rawWsUrl } = routeApi.useLoaderData();
 
   const [status, setStatus] = useState<RoomStatus>(STATUS.WAITING_PARTNER);
   const [text, setText] = useState('');
   const [results, setResults] = useState<string | null>(null);
+  const [connected, setConnected] = useState(false);
+  const socketRef = useRef<WebSocket | null>(null);
 
-  const socketUrl = useMemo(() => {
-    if (!rawWsUrl) return null;
+  const MIN_CHARS = 50;
+  const MAX_CHARS = 5000;
 
-    if (window.location.hostname !== 'localhost') {
-      return rawWsUrl.replace('ws://', 'wss://');
-    }
+  useEffect(() => {
+    if (!rawWsUrl) return;
 
-    try {
-      const url = new URL(rawWsUrl);
-
-      const path = url.pathname;
-
-      const finalPath = path.startsWith('/ws') ? path : `/ws${path}`;
-
-      return `ws://${window.location.host}${finalPath}${url.search}`;
-    } catch (e) {
-      console.log(e);
-      return `ws://${window.location.host}/ws/ws/${roomId}`;
-    }
-  }, [rawWsUrl, roomId]);
-
-  const { sendJsonMessage, readyState } = useWebSocket(socketUrl, {
-    shouldReconnect: () => true,
-    onOpen: () => {
-      console.log('WebSocket подключен через прокси к:', socketUrl);
-      toast.success('Подключено к серверу');
-    },
-    onClose: () => toast.error('Связь разорвана'),
-    onError: event => {
-      console.log('Попытка подключения к:', socketUrl);
-      console.error('Ошибка WebSocket:', event);
-      toast.error('Ошибка подключения к сокету');
-    },
-    onMessage: event => {
-      const data = JSON.parse(event.data);
-      console.log('Получено сообщение:', data);
-
-      if (data.type === 'info' && data.username) {
-        setStatus(STATUS.WRITING);
+    const closeSession = async () => {
+      try {
+        localStorage.removeItem('active_room');
+        await apiFetch(API_ROUTES.rooms.cancel, { method: 'DELETE' });
+      } catch (e) {
+        console.error('Failed to cancel session:', e);
+      } finally {
+        navigate({ to: '/room/welcome' });
       }
+    };
 
-      if (data.type === 'info' && data.content?.includes('Ожидаем партнера')) {
-        setStatus(STATUS.WAITING_OTHER);
-      }
+    const ws = new WebSocket(rawWsUrl);
+    socketRef.current = ws;
 
-      if (data.type === 'ai_update') {
-        if (data.step === 'processing') {
-          setStatus(STATUS.GENERATING);
+    ws.onopen = () => setConnected(true);
+
+    ws.onmessage = event => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'room_ready') setStatus(STATUS.WRITING);
+        if (data.type === 'info') {
+          const content = data.content?.toLowerCase() || '';
+          if (content.includes('ready') || content.includes('заполнена')) {
+            setStatus(STATUS.WRITING);
+          }
         }
-        if (data.step === 'completed' && data.content) {
-          setResults(data.content);
-          setStatus(STATUS.RESULTS);
+        if (data.type === 'ai_update') {
+          if (data.step === 'generating') setStatus(STATUS.GENERATING);
+          if (data.step === 'completed' && data.content) {
+            console.log(data);
+            setResults(data.content);
+            setStatus(STATUS.RESULTS);
+          }
         }
+        if (data.type === 'error') closeSession();
+      } catch (e) {
+        console.error('Parsing error:', e);
       }
-    },
-  });
+    };
 
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: 'Подключение...',
-    [ReadyState.OPEN]: 'В сети',
-    [ReadyState.CLOSING]: 'Закрытие...',
-    [ReadyState.CLOSED]: 'Оффлайн',
-    [ReadyState.UNINSTANTIATED]: 'Инициализация',
-  }[readyState];
+    ws.onclose = () => {
+      setConnected(false);
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) ws.close();
+    };
+  }, [rawWsUrl, navigate]);
 
   const handleFinishWriting = () => {
-    if (text.length < 10) return toast.warning('Слишком коротко');
-    sendJsonMessage({ type: 'message', text });
+    if (text.length < MIN_CHARS) return;
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({ type: 'message', text }));
+      setStatus(STATUS.WAITING_OTHER_FINISH);
+    }
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-6">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#FDF2F8] p-6">
       <Background />
-
-      <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full border border-white/10 bg-white/20 px-4 py-1 text-sm text-white backdrop-blur-sm">
-        {readyState === ReadyState.CONNECTING && (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        )}
-        <span
-          className={
-            readyState === ReadyState.OPEN
-              ? 'text-green-400'
-              : 'text-yellow-400'
-          }
-        >
-          {connectionStatus}
-        </span>
-      </div>
-
-      <div className="z-10 w-full max-w-2xl text-center">
+      <div className="z-10 w-full max-w-2xl">
         {status === STATUS.WAITING_PARTNER && (
-          <Card className="bg-white/80 p-10 backdrop-blur-md">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">
-              Ждем партнера
+          <Card className="flex w-full max-w-175 flex-col items-center gap-6 rounded-[40px] border-none bg-white p-12 text-center shadow-2xl">
+            <h2 className="text-3xl leading-tight font-black text-gray-900">
+              Ожидаем вашего <br /> партнера...
             </h2>
-            <p className="mb-6 text-lg text-gray-600">Код комнаты:</p>
-            <div className="flex items-center justify-center gap-3 rounded-lg border border-gray-200 bg-gray-100 p-4 font-mono text-3xl">
-              {roomId}
-              <Copy
-                className="h-6 w-6 cursor-pointer text-gray-400 transition-colors hover:text-black"
-                onClick={() => {
-                  navigator.clipboard.writeText(roomId);
-                  toast.success('Код скопирован');
-                }}
-              />
+            <Logo className="h-20 w-20 text-[#9810FA]" />
+            <p className="text-[19px] font-medium text-gray-400">
+              Когда оба описания будут готовы, начнется анализ.
+            </p>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 px-6 py-2 text-lg font-bold">
+              Код партнера:{' '}
+              <span className="ml-1 text-[#9810FA]">{roomId}</span>
             </div>
-          </Card>
-        )}
-
-        {status === STATUS.WRITING && (
-          <Card className="bg-white/90 p-6 backdrop-blur-md">
-            <h2 className="mb-4 text-xl font-semibold">Ваша очередь писать</h2>
-            <Textarea
-              value={text}
-              onChange={e => setText(e.target.value)}
-              placeholder="Расскажите вашу историю..."
-              className="mb-4 min-h-[300px] bg-white/50 text-lg"
-            />
             <Button
-              onClick={handleFinishWriting}
-              className="h-12 w-full bg-[#9810FA] text-lg text-white"
-              disabled={readyState !== ReadyState.OPEN}
+              variant="outline"
+              className="h-14 cursor-pointer rounded-full border-2 border-[#9810FA] bg-white px-10 font-bold text-[#9810FA] transition-all duration-300 hover:bg-[#9810FA] hover:text-white active:scale-95"
+              onClick={() => navigator.clipboard.writeText(roomId)}
             >
-              Отправить
+              Скопировать код <Copy className="ml-2 h-4 w-4" />
             </Button>
           </Card>
         )}
 
-        {status === STATUS.RESULTS && (
-          <Card className="bg-white/95 p-8 text-left shadow-xl backdrop-blur-md">
-            <h3 className="mb-6 border-b pb-4 text-2xl font-bold text-[#9810FA]">
-              Анализ ИИ:
-            </h3>
-            <div className="text-lg leading-relaxed whitespace-pre-wrap text-gray-800">
-              {results}
+        {status === STATUS.WRITING && (
+          <Card className="w-full max-w-175 rounded-[40px] border-none bg-white p-10 shadow-2xl backdrop-blur-xl">
+            <h2 className="mb-8 text-center text-3xl leading-tight font-black text-gray-900">
+              Опишите ситуацию со своей точки зрения
+            </h2>
+            <Textarea
+              value={text}
+              onChange={e => setText(e.target.value.slice(0, MAX_CHARS))}
+              placeholder="Что происходит? Как вы себя чувствуете? Не стесняйтесь делиться деталями - все конфиденциально."
+              className="h-70 w-full resize-none overflow-y-auto rounded-[30px] border-gray-200 bg-gray-100 p-8 text-xl"
+            />
+            <div className="flex justify-end px-2 text-sm font-bold text-gray-400">
+              {text.length}/{MAX_CHARS}
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+              <Button
+                onClick={handleFinishWriting}
+                disabled={text.length < MIN_CHARS || !connected}
+                className="h-16 w-full cursor-pointer rounded-[30px] bg-[#9810FA] text-2xl font-black text-white transition-all duration-300 hover:bg-[#7a0dc9] active:scale-95 disabled:bg-gray-200"
+              >
+                Готово
+              </Button>
+              {text.length < MIN_CHARS && (
+                <p className="text-[15px] font-medium text-gray-400">
+                  Пожалуйста, напишите минимум {MIN_CHARS} символов (осталось{' '}
+                  {MIN_CHARS - text.length})
+                </p>
+              )}
             </div>
           </Card>
         )}
 
-        {(status === STATUS.WAITING_OTHER || status === STATUS.GENERATING) && (
-          <div className="flex flex-col items-center gap-6 text-white drop-shadow-lg">
-            <Loader2 className="h-16 w-16 animate-spin" />
-            <h2 className="text-2xl font-medium">
+        {(status === STATUS.WAITING_OTHER_FINISH ||
+          status === STATUS.GENERATING) && (
+          <Card className="w-full max-w-175 rounded-[40px] border-none bg-white p-16 text-center shadow-2xl backdrop-blur-xl">
+            <Loader2 className="mx-auto h-16 w-16 animate-spin text-[#9810FA]" />
+            <h2 className="text-3xl font-black text-gray-900">
               {status === STATUS.GENERATING
-                ? 'Анализ совместимости...'
+                ? 'ИИ анализирует...'
                 : 'Ждем партнера...'}
             </h2>
-          </div>
+          </Card>
+        )}
+
+        {status === STATUS.RESULTS && (
+          <Card className="w-full max-w-175 rounded-[40px] border-none bg-white p-10 shadow-2xl backdrop-blur-xl">
+            <h2 className="mb-8 text-center text-3xl font-black text-[#9810FA]">
+              Ваши рекомендации готовы:
+            </h2>
+            <div className="mb-8 overflow-y-auto rounded-[30px] bg-purple-50 p-8">
+              <p className="text-lg text-gray-700 italic">"{results}"</p>
+            </div>
+            <Button
+              className="h-16 w-full cursor-pointer rounded-full bg-[#9810FA] text-xl font-bold text-white hover:bg-[#800dd4] active:scale-95"
+              onClick={() => {
+                localStorage.removeItem('active_room');
+                navigate({ to: '/room/welcome' });
+              }}
+            >
+              Завершить
+            </Button>
+          </Card>
         )}
       </div>
     </div>

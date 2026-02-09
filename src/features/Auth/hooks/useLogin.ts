@@ -23,7 +23,16 @@ export const useLogin = (setError: UseFormSetError<LoginFormValues>) => {
     },
     onError: (error: Error) => {
       const msg = error.message;
-      if (msg.includes('401') || msg.toLowerCase().includes('credentials')) {
+
+      if (msg.includes('Failed to fetch')) {
+        setError('email', {
+          type: 'manual',
+          message: 'Такого аккаунта не существует',
+        });
+      } else if (
+        msg.includes('401') ||
+        msg.toLowerCase().includes('credentials')
+      ) {
         setError('email', {
           type: 'manual',
           message: 'Неверная почта или пароль',

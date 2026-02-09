@@ -41,7 +41,7 @@ export const ProfileView = () => {
                   {user?.username}
                 </h1>
                 <span
-                  className={`font-days text-[40px] ${user?.sex === 'male' ? 'text-[#155DFC]' : 'text-[#F61064]'}`}
+                  className={`font-days text-[40px] ${user?.sex === 'male' ? 'text-[#155DFC]' : user?.sex === 'female' ? 'text-[#F61064]' : 'text-[#9810FA]'}`}
                 >
                   (
                   {user?.sex === 'male'

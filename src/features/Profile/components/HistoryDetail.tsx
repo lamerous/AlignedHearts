@@ -7,8 +7,8 @@ interface Props {
 export const HistoryDetail = ({ item }: Props) => (
   <div className="flex flex-col gap-6 rounded-[30px] bg-white/60 p-6 shadow-xl backdrop-blur-md">
     <div className="flex flex-col gap-2">
-      <h1 className="text-[28px] leading-tight font-bold text-black">
-        {item.owner_text.slice(0, 50)}...
+      <h1 className="text-[28px] leading-tight font-bold break-all text-black">
+        {item.text.slice(0, 50)}...
       </h1>
       <span className="text-xl text-[#090909]/70">
         {new Date(item.created_at).toLocaleString('ru-RU')}
@@ -16,8 +16,8 @@ export const HistoryDetail = ({ item }: Props) => (
     </div>
 
     <div className="rounded-[30px] bg-[#FFF0FA] p-5">
-      <p className="text-base leading-relaxed text-[#4A4A4A]">
-        {item.owner_text}
+      <p className="text-base leading-relaxed break-all text-[#4A4A4A]">
+        {item.text}
       </p>
     </div>
 

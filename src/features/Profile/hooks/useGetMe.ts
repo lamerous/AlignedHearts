@@ -9,5 +9,6 @@ export const useGetMe = () => {
     queryKey: ['profile', 'me'],
     queryFn: () => apiFetch<UserProfile>(API_ROUTES.profile.me),
     staleTime: 1000 * 60 * 5,
+    retry: 0, // fix
   });
 };

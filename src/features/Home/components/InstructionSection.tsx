@@ -10,7 +10,7 @@ export const InstructionSection = () => {
     >
       <div className="container mx-auto flex flex-col items-center">
         <div className="mb-16 flex flex-col items-center text-center">
-          <h2 className="font-days mb-6 text-4xl text-black md:text-[40px]">
+          <h2 className="font-inter mb-6 text-4xl text-black md:text-[40px]">
             Просто, конфиденциально, эффективно
           </h2>
 

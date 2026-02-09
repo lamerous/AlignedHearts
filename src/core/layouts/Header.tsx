@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { LogOut, User } from 'lucide-react';
+import { BrainCog, LogOut, User } from 'lucide-react';
 import { Button } from '@/core/ui/button';
 import {
   DropdownMenu,
@@ -85,6 +85,13 @@ export const Header = () => {
                     <span>
                       Профиль {user?.username && `(${user.username})`}
                     </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => navigate({ to: '/room/welcome' })}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg p-3 hover:bg-[#FFF2F3]"
+                  >
+                    <BrainCog className="h-4 w-4" />
+                    <span>Начать (ИИ)</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => logout()}

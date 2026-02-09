@@ -1,7 +1,6 @@
 export const Background = () => {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="absolute inset-0 bg-[#FFF2F3]" />
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
       <div className="absolute inset-[-20%] top-20 opacity-60">
         <div className="absolute top-[10%] left-[25%] h-[50%] w-[50%] rounded-full bg-[#F61064] blur-[120px] md:blur-[224px]" />
         <div className="absolute right-[5%] bottom-[5%] h-[50%] w-[50%] rounded-full bg-[#B456FF] blur-[120px] md:blur-[224px]" />
