@@ -36,7 +36,7 @@ export const HistoryAccordion = ({ items, selectedId, onSelect }: Props) => {
             >
               <div className="flex w-full items-center justify-between gap-4 pr-2 text-left">
                 <span className="line-clamp-2 flex-1 text-xl leading-tight font-medium text-black">
-                  {item.owner_text}
+                  {item.text}
                 </span>
 
                 <span className="shrink-0 text-base text-[#7F7F7F]">
