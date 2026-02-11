@@ -4,6 +4,7 @@ obsidian/
 
 __pycache__/
 venv/
+*.pyc
 
 test*
 tutorial.py
