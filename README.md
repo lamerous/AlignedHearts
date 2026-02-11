@@ -117,9 +117,9 @@ server {
 |   Name   |   Role   | 
 |----------|----------|
 | [Golov Alexsandr](https://github.com/lamerous)    | Lead Architect, Backend | 
-| [Zahvey Ivan](https://github.com/vaveyko)    | ML Engineer  | 
-| [Rodion](https://github.com/lamerous)    | ML Engineer | 
-| [Solonovich Violetta](https://github.com/viosolo)    | Tg Bot Client, Backend | 
+| [Zakhvey Ivan](https://github.com/vaveyko)    | ML Engineer  | 
+| [Scherbak Rodion](https://github.com/eepyGato)    | ML Engineer | 
+| [Solonovich Violetta](https://github.com/viosolo)    | Telegram Client, Backend | 
 | [Popov Kirill](https://github.com/OldPole)    | Frontend | 
 
 ## 📄 License
