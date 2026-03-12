@@ -8,3 +8,5 @@ venv/
 
 test*
 tutorial.py
+
+.vscode/
