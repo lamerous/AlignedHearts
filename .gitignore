@@ -8,3 +8,6 @@ venv/
 
 test*
 tutorial.py
+
+.vscode/
+backend-spring/
