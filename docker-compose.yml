@@ -38,7 +38,7 @@ services:
       - "3000:3000"
 
   nginx:
-    image: nginx:alpine
+    image: nginx
     container_name: aligned_hearts_nginx
     ports:
       - "80:80"
@@ -48,17 +48,17 @@ services:
       - backend_service
       - frontend
 
-  # ai_service:
-  #   build: ./core
-  #   container_name: ai_service
-  #   ports:
-  #     - "8001:8000"
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   env_file:
-  #     - ./core/.env
-  #   volumes:
-  #     - ./core/:/app/
+  ai_service:
+    build: ./core
+    container_name: ai_service
+    ports:
+      - "8001:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ./core/.env
+    volumes:
+      - ./core/:/app/
 
 volumes:
   postgres_data:

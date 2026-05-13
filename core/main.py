@@ -115,7 +115,7 @@ async def ai_endpoint(websocket: WebSocket):
             #     print(ch, end='', flush=True)
             #     await websocket.send_json({"status": "generating", "text": ch})
 
-            full_response = f"Братан, все збс будет. Если че, иишка много жрет, поэтому ее не запускал, а так она работает"
+            full_response = f"Братан, все будет хорошо. Если че, иишка много жрет, поэтому ее не запускал, а так она работает"
             words = full_response.split()
             
             for word in words:
