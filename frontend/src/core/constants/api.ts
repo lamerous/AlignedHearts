@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://alignedhearts.ru/api';
+export const BASE_URL = 'http://10.81.171.73:8000/api';
 
 export const GOOGLE_LOGIN_URL =
-  'https://alignedhearts.ru/api/auth/google/login';
+  'http://localhost:8000/api/auth/google/login';

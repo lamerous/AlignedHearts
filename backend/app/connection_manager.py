@@ -112,7 +112,7 @@ class ConnectionManager:
 
     # connection_manager.py
     async def get_ai_response_stream(self, room_id: str, payload: dict):
-        uri = "ws://ai_service:8000/ws/ai"
+        uri = "ws://10.81.171.73:8001/ws/ai"
         try:
             # Добавляем таймаут для проверки соединения
             async with websockets.connect(uri) as ai_ws:

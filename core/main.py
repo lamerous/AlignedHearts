@@ -1,14 +1,14 @@
 import asyncio
 import json
-import ollama
+# import ollama
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from classifier_model import MultiTaskRuBERT
+# from classifier_model import MultiTaskRuBERT
 
 app = FastAPI()
 
-classifier = MultiTaskRuBERT()
-ollama_client = ollama.AsyncClient()
+# classifier = MultiTaskRuBERT()
+# ollama_client = ollama.AsyncClient()
 
 
 kb_path            = 'knowledge_base.json'
@@ -25,9 +25,9 @@ with open(user_template_path, 'r', encoding='utf-8') as f:
     user_template = f.read()
 
 
-async def classify_text(text: str):
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, classifier.predict_samples, [text])
+# async def classify_text(text: str):
+#    loop = asyncio.get_running_loop()
+#    return await loop.run_in_executor(None, classifier.predict_samples, [text])
 
 
 @app.websocket("/ws/ai")
@@ -44,22 +44,34 @@ async def ai_endpoint(websocket: WebSocket):
             member_sex  = data.get("member_sex", "")
 
             await websocket.send_json({"status": "classifying", "text": "Классифицируем ваш запрос"})
-            classifications = await classify_text(owner_text)
-            classifications2 = await classify_text(member_text)
+            # classifications = await classify_text(owner_text)
+            # classifications2 = await classify_text(member_text)
 
             # Partner 1
-            stage_1   = classifications['stage_id'][0][0]
-            strange_1 = classifications['strange_id'][0][0]
-            group_1   = classifications['group_id'][0][0]
-            emotion_1 = classifications['emotion_id'][0][0]
-            trigger_1 = classifications['trigger_id'][0][0]
+            # stage_1   = classifications['stage_id'][0][0]
+            # strange_1 = classifications['strange_id'][0][0]
+            # group_1   = classifications['group_id'][0][0]
+            # emotion_1 = classifications['emotion_id'][0][0]
+            # trigger_1 = classifications['trigger_id'][0][0]
 
-            # Partner 2
-            stage_2   = classifications2['stage_id'][0][0]
-            strange_2 = classifications2['strange_id'][0][0]
-            group_2   = classifications2['group_id'][0][0]
-            emotion_2 = classifications2['emotion_id'][0][0]
-            trigger_2 = classifications2['trigger_id'][0][0]
+            # # Partner 2
+            # stage_2   = classifications2['stage_id'][0][0]
+            # strange_2 = classifications2['strange_id'][0][0]
+            # group_2   = classifications2['group_id'][0][0]
+            # emotion_2 = classifications2['emotion_id'][0][0]
+            # trigger_2 = classifications2['trigger_id'][0][0]
+
+            stage_1 = ""
+            strange_1 = ""
+            group_1 = ""
+            emotion_1 = ""
+            trigger_1 = ""
+
+            stage_2 = ""
+            strange_2 = ""
+            group_2 = ""
+            emotion_2 = ""
+            trigger_2 = ""
 
             # kb - knowlage base
             sys_data = {"owner_sex": owner_sex, "member_sex": member_sex}
@@ -97,14 +109,14 @@ async def ai_endpoint(websocket: WebSocket):
     
             await websocket.send_json({"status": "preparing", "text": "Генерируем результат"})
 
-            stream = await ollama_client.chat(
-                model="77ko88ok/psychocounsel-llama3-8:q4_l_m",
-                messages=[
-                    {"role": "system", "content": sys_prompt},
-                    {"role": 'user', "content": user_prompt}
-                ],
-                stream=True,
-            )
+            # stream = await ollama_client.chat(
+            #     model="77ko88ok/psychocounsel-llama3-8:q4_l_m",
+            #     messages=[
+            #         {"role": "system", "content": sys_prompt},
+            #         {"role": 'user', "content": user_prompt}
+            #     ],
+            #     stream=True,
+            # )
 
             ai_advice = ""
 
